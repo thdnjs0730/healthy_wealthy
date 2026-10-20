@@ -9,11 +9,15 @@ const port = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
+if (!process.env.DB_USER || !process.env.DB_PASSWORD) {
+  throw new Error('DB_USER and DB_PASSWORD environment variables are required.');
+}
+
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '1234',
-  database: 'wealthy'
+  host: process.env.DB_HOST || '127.0.0.1',
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME || 'wealthy'
 });
 
 db.connect((err) => {
@@ -27,8 +31,6 @@ db.connect((err) => {
 // 로그인 엔드포인트
 app.post('/login', (req, res) => {
   const { userId, password } = req.body; // 'username'을 'userId'로 대체
-  console.log('로그인 시도:', userId, password);
-
   const query = 'SELECT id FROM users WHERE id = ? AND password = ?'; // 'username'을 'id'로 대체
   db.query(query, [userId, password], (err, results) => {
     if (err) {
